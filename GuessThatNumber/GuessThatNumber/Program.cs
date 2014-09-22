@@ -19,6 +19,7 @@ namespace GuessThatNumber
 
         static void Greet()
         {
+            Console.Title = "Guess That Number";
             //greets the user and gives instructions
             Console.WriteLine("Hello,\nIn this game you will be trying to guess a number between one and one hundred.\nYou will be given feedback about your guesses as you go.\nPlease type in a number between one and one hundred for each guess.");
             Console.WriteLine("\nYou may now begin guessing");
@@ -43,7 +44,7 @@ namespace GuessThatNumber
                 //get the users guess and convert to an int
                 string input = Console.ReadLine();
                 int guess = int.Parse(input);
-
+                
                 //check for conditions
                 if (guess == answer)
                 {
@@ -51,6 +52,7 @@ namespace GuessThatNumber
                     hasWon = true;
                     Console.Clear();
                     Console.WriteLine("Good job, you have won. The number was " + answer + ".\nIt took you " + guesses + " guesses to find it.");
+                    
                 }
                 else if (guess < answer)
                 {
@@ -63,7 +65,55 @@ namespace GuessThatNumber
                     Console.WriteLine("\nI'm sorry, that is incorrect. " + guess + " was too high, please guess again.");
                 }
             }
+            //add high score
+            AddHighScore(guesses);
+            //give the user a moment to read
+            System.Threading.Thread.Sleep(2500);
+            //display highscores
+            DisplayHighScores();
             
+        }
+
+        static void AddHighScore(int playerScore)
+        {
+            //get player name for high score
+            Console.Write("Your name: "); string playerName = Console.ReadLine();
+
+            //create a gateway to the database
+            CianEntities db = new CianEntities();
+            
+            //create a new high score object
+            // fill it with our user's data
+            HighScore newHighScore = new HighScore();
+            newHighScore.DateCreated = DateTime.Now;
+            newHighScore.Game = "Guess That Number";
+            newHighScore.Name = playerName;
+            newHighScore.Score = playerScore;
+
+            //add it to the database
+            db.HighScores.Add(newHighScore);
+            
+            //save our changes
+            db.SaveChanges();
+        }
+
+        static void DisplayHighScores()
+        {
+            //clear the console
+            Console.Clear();
+            Console.Title = "ΦGuess That Number High ScoresΦ";
+            Console.WriteLine("Guess That Number High Scores");
+            Console.WriteLine("≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡");
+
+            //create a new connection to the database
+            CianEntities db = new CianEntities();
+            //get the high score list
+            List<HighScore> highScoreList = db.HighScores.Where(x => x.Game == "Guess That Number").OrderBy(x => x.Score).Take(10).ToList();
+
+            foreach (HighScore highScore in highScoreList)
+            {
+                Console.WriteLine("{0}. {1} - {2}", highScoreList.IndexOf(highScore) + 1, highScore.Name, highScore.Score);
+            }
         }
     }
 }
